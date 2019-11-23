@@ -2,12 +2,14 @@
 <html>
 <head>
   <title>Udacity Todos Goals</title>
+<!-- Packages for React and Redux -->
   <script src='https://cdnjs.cloudflare.com/ajax/libs/redux/3.7.2/redux.min.js'></script>
   <script src="https://unpkg.com/react@16.3.0-alpha.1/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
 </head>
 <body>
+<!--
   <div>
     <h1>Todo List</h1>
     <input id='todo' type='text' placeholder='Add Todo' />
@@ -21,8 +23,11 @@
     <ul id='goals'></ul>
   </div>
   <hr/>
+-->
+<!-- HTML to place the app -->
   <div id= 'app'>
   </div>
+
   <script type='text/javascript'>
     function generateId () {
       return Math.random().toString(36).substring(2) + (new Date()).getTime().toString(36);
@@ -34,6 +39,8 @@
     const TOGGLE_TODO = 'TOGGLE_TODO'
     const ADD_GOAL = 'ADD_GOAL'
     const REMOVE_GOAL = 'REMOVE_GOAL'
+
+    // Redux Actions
     function addTodoAction (todo) {
       return {
         type: ADD_TODO,
@@ -64,6 +71,7 @@
         id,
       }
     }
+    // Redux Reducers
     function todos (state = [], action) {
       switch(action.type) {
         case ADD_TODO :
@@ -87,7 +95,7 @@
           return state
       }
     }
-
+    // redux Middleware
     const checker = (store) => (next) => (action) => {
       if (
         action.type === ADD_TODO &&
@@ -118,12 +126,12 @@
     console.groupEnd()
     return result
   }
-
+  // Redux Store
   const store = Redux.createStore(Redux.combineReducers({
     todos,
     goals,
   }), Redux.applyMiddleware(checker, logger))
-
+/*
     store.subscribe(() => {
       const { goals, todos } = store.getState()
       document.getElementById('goals').innerHTML = ''
@@ -131,7 +139,8 @@
       goals.forEach(addGoalToDOM)
       todos.forEach(addTodoToDOM)
     })
-
+*/
+/*
     // DOM code
     function addTodo () {
       const input = document.getElementById('todo')
@@ -189,9 +198,12 @@
       document.getElementById('goals')
       .append(node)
     }
+    */
   </script>
+  <!-- React script -->
   <script type = 'text/babel'>
-
+  // React. List stateless component
+  // Displays list, remove button and toggele complete
   function List (props) {
     return (
       <ul>
@@ -210,6 +222,15 @@
       </ul>
     )
   }
+  // React. Todos Component
+  // renders UI : Todo List header, input field
+  // gives properties to List Component:
+  // removeIntem function, uses Redux dispatch() function to modify the state with removeTodoAction
+  // toggleIntem function, uses Redux dispatch() function to modify the state with toggleTodoAction
+  // items gives this.props.todos property as intems to List. this.props.todos was exportet here by the App Component
+
+  // addItem function 1. give this.imput.value to const name and resets give this.imput.value
+  // 2. uses Redux dispatch() function to modify the state with addTodoAction
   class Todos extends React.Component {
     addItem = (e) => {
       e.preventDefault()
@@ -247,6 +268,7 @@
       )
     }
   }
+
   class Goals extends React.Component {
     addItem = (e) => {
       e.preventDefault()
@@ -280,6 +302,12 @@
       )
     }
   }
+  // react App component
+  // takes store from props
+  // store.subscribe() takes in functions that will be called when the state changes
+  // gets todos and goals from the Store in Redux store.getState()
+  // gives todos and goals as props to Todos and Goals Components
+  // this.props.store ??
   class App extends React.Component {
     componentDidMount () {
       const { store } = this.props
@@ -297,7 +325,7 @@
       )
     }
   }
-
+// React renders app
   ReactDOM.render(
     <App store={store}/>,
     document.getElementById('app')
