@@ -67,15 +67,67 @@
         goals,
       }
     }
-    // here the function is beeing returned as an acction
+    function handleAddTodo(name, callBackFunction) {
+      return (dispatch) => {
+        return API.saveTodo(name)
+        .then((todo) => {
+          dispatch(addTodoAction(todo))
+          callBackFunction()
+        }).catch(() => {
+          alert('error try again')
+        })
+      }
+    }
     function handleDeleteTodo (todo) {
       return (dispatch) => {
         dispatch(removeTodoAction(todo.id))
         return API.deleteTodo(todo.id)
               .catch(() => {
-                this.props.store.dispatch(addTodoAction(todo))
+                dispatch(addTodoAction(todo))
                 alert('error. Item is not deleted')
               })
+      }
+    }
+    function handleToggle (id) {
+      return (dispatch) => {
+        dispatch(toggleTodoAction(id))
+        return API.saveTodoToggle(id)
+              .catch(() => {
+                dispatch(toggleTodoAction(id))
+                alert('error. Item is not toggled')
+              })
+      }
+    }
+    function handleAddGoal (name, callBackFunction) {
+      // because of asynch functionaliy returning a function
+      return (dispatch) => {
+        return API.saveGoal(name)
+        .then((goal) => {
+          dispatch(addGoalAction(goal))
+          callBackFunction()
+        }).catch(() => {
+          alert('error try again')
+        })
+      }
+    }
+    function handleDeleteGoal(goal) {
+      return (dispatch) => {
+        dispatch(removeGoalAction(goal.id))
+        return API.deleteGoal(goal.id)
+              .catch(() => {
+                dispatch(addGoalAction(goal))
+                alert('error. Item is not deleted')
+              })
+      }
+    }
+    function handleInitialData() {
+      return (dispatch) => {
+        return Promise.all([
+            API.fetchTodos(),
+            API.fetchGoals()
+          ]).then(([ todos, goals ]) => {
+            dispatch(receiveDataAction(todos, goals))
+          })
       }
     }
     // Redux Reducers
@@ -139,18 +191,6 @@
     console.groupEnd()
     return result
   }
-  // Trunk middleweare self made
-  // when returned action is a function not an object
-  // then we invoce that action passing store.dispatch
-  // if is not a function then invoke next passing action
-  /*
-  const thunk = (store) => (next) => (action) => {
-    if (typeof action === 'function') {
-      return action(store.dispatch)
-    }
-    return next(action)
-  }
-  */
 
   // Redux Store
   const store = Redux.createStore(Redux.combineReducers({
@@ -158,15 +198,12 @@
     goals,
     loading,
   }), Redux.applyMiddleware(ReduxThunk.default, checker, logger))
-  // Trunk middleweare self made
-  /*
-  }), Redux.applyMiddleware(thunk, checker, logger))
-  */
+
   </script>
   <!-- React script -->
   <script type = 'text/babel'>
   // React. List stateless component
-  // Displays list, remove button and toggele complete
+
   function List (props) {
     return (
       <ul>
@@ -189,27 +226,17 @@
   class Todos extends React.Component {
     addItem = (e) => {
       e.preventDefault()
-
-      return API.saveTodo(this.input.value)
-      .then((todo) => {
-        this.props.store.dispatch(addTodoAction(todo))
-        this.input.value = ''
-      }).catch(() => {
-        alert('error try again')
-      })
-
+      this.props.store.dispatch(handleAddTodo(
+        this.input.value,
+        () => this.input.value =''
+      ))
     }
     removeItem = (todo) => {
       this.props.store.dispatch(handleDeleteTodo(todo))
     }
     toggleItem = (id) => {
-      this.props.store.dispatch(toggleTodoAction(id))
-      return API.saveTodoToggle(id)
-            .catch(() => {
-              this.props.store.dispatch(toggleTodoAction(id))
-              alert('error. Item is not toggled')
-            })
-    }
+      this.props.store.dispatch(handleToggle(id))
+      }
     render() {
       return (
         <div>
@@ -233,23 +260,15 @@
   class Goals extends React.Component {
     addItem = (e) => {
       e.preventDefault()
-
-      return API.saveGoal(this.input.value)
-      .then((goal) => {
-        this.props.store.dispatch(addGoalAction(goal))
-        this.input.value = ''
-      }).catch(() => {
-        alert('error try again')
-      })
-
+      this.props.store.dispatch(handleAddGoal(
+        // goal:
+        this.input.value,
+        //reseting input value to empty string using calback
+        () => this.input.value= ''
+      ))
     }
     removeItem = (goal) => {
-      this.props.store.dispatch(removeGoalAction(goal.id))
-      return API.deleteGoal(goal.id)
-            .catch(() => {
-              this.props.store.dispatch(addGoalAction(goal))
-              alert('error. Item is not deleted')
-            })
+      this.props.store.dispatch(handleDeleteGoal(goal))
     }
 
     render() {
@@ -275,14 +294,8 @@
   class App extends React.Component {
     componentDidMount () {
       const { store } = this.props
-      Promise.all([
-          API.fetchTodos(),
-          API.fetchGoals()
-        ]).then(([ todos, goals ]) => {
-          store.dispatch(receiveDataAction(todos, goals))
-        })
-        store.subscribe(() => this.forceUpdate())
-
+      store.dispatch(handleInitialData())
+      store.subscribe(() => this.forceUpdate())
 }
 
     render () {
