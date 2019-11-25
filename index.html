@@ -256,7 +256,7 @@
       )
     }
   }
-
+// React. Goals Component
   class Goals extends React.Component {
     addItem = (e) => {
       e.preventDefault()
@@ -313,9 +313,36 @@
       )
     }
   }
+  // Connected component
+  class ConnectedApp extends React.Component {
+    render() {
+      return (
+        <Context.Consumer>
+          {(store) => (
+            <App store = {store} />
+          )}
+        </Context.Consumer>
+      )
+    }
+  }
+  // Context component
+  const Context = React.createContext()
+
+  class Provider extends React.Component {
+    render() {
+      return (
+        <Context.Provider value = {this.props.store}>
+          {this.props.children}
+        </Context.Provider>
+
+      )
+    }
+  }
 // React renders app
   ReactDOM.render(
-    <App store={store}/>,
+    <Provider store= {store}>
+      <App/>,
+    </Provider>
     document.getElementById('app')
   )
   </script>
